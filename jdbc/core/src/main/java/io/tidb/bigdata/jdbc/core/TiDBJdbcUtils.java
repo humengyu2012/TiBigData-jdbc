@@ -1,6 +1,7 @@
 package io.tidb.bigdata.jdbc.core;
 
 import io.tidb.bigdata.jdbc.core.TiDBColumn.JavaType;
+import io.tidb.bigdata.jdbc.core.TiDBColumn.TiDBType;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -84,7 +85,7 @@ public class TiDBJdbcUtils {
         String columnClassName = metaData.getColumnClassName(i);
         JavaType javaType = JavaType.fromClassName(columnClassName);
         boolean nullable = metaData.isNullable(i) == ResultSetMetaData.columnNullable;
-        types.add(new TiDBColumn(columnName, javaType, precision, scale, nullable));
+        types.add(new TiDBColumn(columnName, new TiDBType(javaType, precision, scale, nullable)));
       }
     }
     return types;

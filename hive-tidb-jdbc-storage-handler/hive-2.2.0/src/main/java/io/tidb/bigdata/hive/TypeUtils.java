@@ -16,8 +16,8 @@
 
 package io.tidb.bigdata.hive;
 
-import io.tidb.bigdata.jdbc.core.TiDBColumn;
 import io.tidb.bigdata.jdbc.core.TiDBColumn.JavaType;
+import io.tidb.bigdata.jdbc.core.TiDBColumn.TiDBType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -44,10 +44,10 @@ import org.apache.hadoop.io.Writable;
 
 public class TypeUtils {
 
-  public static PrimitiveObjectInspector toObjectInspector(TiDBColumn column) {
-    JavaType javaType = column.getJavaType();
-    int precision = column.getPrecision();
-    int scale = column.getScale();
+  public static PrimitiveObjectInspector toObjectInspector(TiDBType type) {
+    JavaType javaType = type.getJavaType();
+    int precision = type.getPrecision();
+    int scale = type.getScale();
     PrimitiveCategory primitiveCategory;
     switch (javaType) {
       case BOOLEAN:
@@ -87,7 +87,7 @@ public class TypeUtils {
         break;
       default:
         throw new IllegalArgumentException(
-            String.format("Can not get hive type by tidb column: %s", column));
+            String.format("Can not get hive type by tidb type: %s", type));
     }
     if (primitiveCategory == PrimitiveCategory.DECIMAL) {
       return new WritableHiveDecimalObjectInspector(new DecimalTypeInfo(precision, scale));
@@ -96,11 +96,11 @@ public class TypeUtils {
     }
   }
 
-  public static Writable toWriteable(Object object, TiDBColumn column) {
+  public static Writable toWriteable(Object object, TiDBType type) {
     if (object == null) {
       return NullWritable.get();
     }
-    switch (column.getJavaType()) {
+    switch (type.getJavaType()) {
       case BOOLEAN:
         return new BooleanWritable((boolean) object);
       case BYTE:
@@ -132,7 +132,7 @@ public class TypeUtils {
         throw new IllegalArgumentException(
             String.format(
                 "Can not covert tidb java type to writable type, object = %s, type = %s",
-                object, column.getJavaType()));
+                object, type));
     }
   }
 }

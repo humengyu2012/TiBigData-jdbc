@@ -73,7 +73,7 @@ public class TiDBSerde extends AbstractSerDe {
       TiDBColumn column = columns.get(i);
       String name = column.getName();
       Object value = objects[i];
-      mapWritable.put(new Text(name), TypeUtils.toWriteable(value, column));
+      mapWritable.put(new Text(name), TypeUtils.toWriteable(value, column.getType()));
     }
     return mapWritable;
   }
@@ -103,7 +103,7 @@ public class TiDBSerde extends AbstractSerDe {
   public ObjectInspector getObjectInspector() throws SerDeException {
     List<TiDBColumn> columns = getColumns();
     List<ObjectInspector> list = new ArrayList<>();
-    columns.forEach(column -> list.add(TypeUtils.toObjectInspector(column)));
+    columns.forEach(column -> list.add(TypeUtils.toObjectInspector(column.getType())));
     List<String> columnNames =
         columns.stream().map(TiDBColumn::getName).collect(Collectors.toList());
     return ObjectInspectorFactory.getStandardStructObjectInspector(columnNames, list);

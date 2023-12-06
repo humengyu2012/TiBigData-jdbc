@@ -11,54 +11,68 @@ import java.util.Arrays;
 public class TiDBColumn {
 
   private final String name;
-  private final JavaType javaType;
-  private final int precision;
-  private final int scale;
-  private final boolean nullable;
+  private final TiDBType type;
 
-  public TiDBColumn(String name, JavaType javaType, int precision, int scale, boolean nullable) {
+  public TiDBColumn(String name, TiDBType type) {
     this.name = name;
-    this.javaType = javaType;
-    this.precision = precision;
-    this.scale = scale;
-    this.nullable = nullable;
+    this.type = type;
   }
 
   public String getName() {
     return name;
   }
 
-  public JavaType getJavaType() {
-    return javaType;
-  }
-
-  public int getPrecision() {
-    return precision;
-  }
-
-  public int getScale() {
-    return scale;
-  }
-
-  public boolean isNullable() {
-    return nullable;
+  public TiDBType getType() {
+    return type;
   }
 
   @Override
   public String toString() {
-    return "TiDBColumn{"
-        + "name='"
-        + name
-        + '\''
-        + ", javaType="
-        + javaType
-        + ", precision="
-        + precision
-        + ", scale="
-        + scale
-        + ", nullable="
-        + nullable
-        + '}';
+    return "TiDBColumn{" + "name='" + name + '\'' + ", type=" + type + '}';
+  }
+
+  public static class TiDBType {
+    private final JavaType javaType;
+    private final int precision;
+    private final int scale;
+    private final boolean nullable;
+
+    public TiDBType(JavaType javaType, int precision, int scale, boolean nullable) {
+      this.javaType = javaType;
+      this.precision = precision;
+      this.scale = scale;
+      this.nullable = nullable;
+    }
+
+    public JavaType getJavaType() {
+      return javaType;
+    }
+
+    public int getPrecision() {
+      return precision;
+    }
+
+    public int getScale() {
+      return scale;
+    }
+
+    public boolean isNullable() {
+      return nullable;
+    }
+
+    @Override
+    public String toString() {
+      return "TiDBType{"
+          + "javaType="
+          + javaType
+          + ", precision="
+          + precision
+          + ", scale="
+          + scale
+          + ", nullable="
+          + nullable
+          + '}';
+    }
   }
 
   public enum JavaType {

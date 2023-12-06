@@ -147,7 +147,7 @@ public class TiDBJdbcClient extends BaseJdbcClient {
         schemaName.orElse(null),
         null,
         escapeNamePattern(tableName, escape).orElse(null),
-        new String[]{"TABLE", "VIEW"});
+        new String[] {"TABLE", "VIEW"});
   }
 
   @Override

@@ -89,7 +89,8 @@ public class TiDBRecordReader implements RecordReader<LongWritable, MapWritable>
       for (int i = 0; i < cursor.fieldCount(); i++) {
         TiDBColumn column = columns.get(i);
         String name = column.getName();
-        mapWritable.put(new Text(name), TypeUtils.toWriteable(cursor.getObject(i), column));
+        mapWritable.put(
+            new Text(name), TypeUtils.toWriteable(cursor.getObject(i), column.getType()));
       }
       return true;
     } catch (Exception e) {
