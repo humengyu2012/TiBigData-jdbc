@@ -15,12 +15,13 @@ package io.tidb.bigdata.prestodb;
 
 import com.facebook.airlift.configuration.Config;
 import io.airlift.units.Duration;
+import io.tidb.bigdata.jdbc.core.TiDBCoreConfig;
 import java.util.concurrent.TimeUnit;
 import javax.validation.constraints.Min;
 
 public class TiDBConfig {
 
-  public static final String TIDB_SNAPSHOT_SESSION = "tidb_snapshot";
+  public static final String TIDB_SNAPSHOT_SESSION = TiDBCoreConfig.TIDB_SNAPSHOT;
 
   private boolean autoReconnect = true;
   private int maxReconnects = 3;

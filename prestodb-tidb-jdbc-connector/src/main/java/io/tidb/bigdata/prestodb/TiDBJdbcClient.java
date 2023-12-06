@@ -147,7 +147,7 @@ public class TiDBJdbcClient extends BaseJdbcClient {
         schemaName.orElse(null),
         null,
         escapeNamePattern(tableName, escape).orElse(null),
-        new String[] {"TABLE", "VIEW"});
+        new String[]{"TABLE", "VIEW"});
   }
 
   @Override
@@ -257,7 +257,7 @@ public class TiDBJdbcClient extends BaseJdbcClient {
       version = tiDBPrestoJdbcSplit.getVersion();
     }
     try (java.sql.Statement statement = connection.createStatement()) {
-      statement.execute("SET @@tidb_snapshot=" + version);
+      statement.execute(String.format(TiDBJdbcUtils.SET_TS_SQL_FORMAT, version));
     } catch (SQLException e) {
       connection.close();
       throw e;
@@ -275,14 +275,14 @@ public class TiDBJdbcClient extends BaseJdbcClient {
       String schemaName = schemaTableName.getSchemaName();
       String tableName = schemaTableName.getTableName();
       List<JdbcSplit> splits =
-          TiDBJdbcUtils.querySplits(connection, schemaName, tableName, version).stream()
+          TiDBJdbcUtils.querySplits(connection, schemaName, tableName, version, true).stream()
               .map(
                   tiDBJdbcSplit ->
                       new TiDBPrestoJdbcSplit(
                           connectorId,
                           null,
-                          schemaName,
-                          tableName,
+                          tiDBJdbcSplit.getDatabaseName(),
+                          tiDBJdbcSplit.getTableName(),
                           layoutHandle.getTupleDomain(),
                           layoutHandle.getAdditionalPredicate(),
                           tiDBJdbcSplit.getStartKey(),
