@@ -106,7 +106,7 @@ public class TiDBCatalogTest {
             + " 'a' \n"
             + ")";
     tiDBCatalog.sqlUpdate(createTableSql, insertSql);
-    tableEnvironment.executeSql("SELECT * FROM `tidb`.`test`.`test_all_types`").print();
+    tableEnvironment.executeSql("SELECT * FROM `tidb`.`test`.`test_all_types` WHERE c1 = 1 AND c2 = 1 AND c3 <> 2 ").print();
   }
 
   @Ignore
