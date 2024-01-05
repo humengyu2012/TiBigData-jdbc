@@ -1,5 +1,6 @@
 package io.tidb.bigdata.jdbc.core;
 
+import io.tidb.bigdata.jdbc.core.TiDBColumn.TiDBType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,23 +12,32 @@ public class TiDBJdbcRecordCursor implements AutoCloseable {
 
   private final Statement statement;
   private final LinkedList<Supplier<ResultSet>> resultSets;
-  private final List<String> columns;
+  private final List<TiDBColumn> columns;
 
   private ResultSet resultSet;
 
   public TiDBJdbcRecordCursor(
-      Statement statement, List<Supplier<ResultSet>> resultSets, List<String> columns) {
+      Statement statement, List<Supplier<ResultSet>> resultSets, List<TiDBColumn> columns) {
     this.statement = statement;
     this.resultSets = new LinkedList<>(resultSets);
     this.columns = columns;
   }
 
   public Object getObject(int index) throws SQLException {
-    return resultSet.getObject(index + 1);
+    return columns
+        .get(index)
+        .getType()
+        .getJavaType()
+        .getValueProvider()
+        .getValue(resultSet, index + 1);
   }
 
-  public Object getObject(String name) throws SQLException {
-    return resultSet.getObject(name);
+  public TiDBType getType(int index) {
+    return columns.get(index).getType();
+  }
+
+  public ResultSet currentResultSet() {
+    return resultSet;
   }
 
   private boolean nextResultSet() throws SQLException {

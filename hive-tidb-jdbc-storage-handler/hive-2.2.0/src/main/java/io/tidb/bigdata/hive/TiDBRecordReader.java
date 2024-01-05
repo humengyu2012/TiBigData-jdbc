@@ -26,7 +26,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
@@ -64,9 +63,7 @@ public class TiDBRecordReader implements RecordReader<LongWritable, MapWritable>
     TiDBJdbcSplit split = jdbcSplits.get(0);
     columns =
         TiDBJdbcUtils.queryTiDBColumns(connection, split.getDatabaseName(), split.getTableName());
-    List<String> columnNames =
-        columns.stream().map(TiDBColumn::getName).collect(Collectors.toList());
-    cursor = TiDBJdbcUtils.scan(connection, jdbcSplits, columnNames);
+    cursor = TiDBJdbcUtils.scan(connection, jdbcSplits, columns, null, null);
   }
 
   @Override

@@ -1,14 +1,17 @@
 package io.tidb.bigdata.jdbc.core;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-public class TiDBColumn {
+public class TiDBColumn implements Serializable {
 
   private final String name;
   private final TiDBType type;
@@ -31,7 +34,8 @@ public class TiDBColumn {
     return "TiDBColumn{" + "name='" + name + '\'' + ", type=" + type + '}';
   }
 
-  public static class TiDBType {
+  public static class TiDBType implements Serializable {
+
     private final JavaType javaType;
     private final int precision;
     private final int scale;
@@ -75,31 +79,43 @@ public class TiDBColumn {
     }
   }
 
-  public enum JavaType {
-    BOOLEAN(Boolean.class),
-    BYTE(Byte.class),
-    BYTES(byte[].class),
-    SHORT(Short.class),
-    INTEGER(Integer.class),
-    LONG(Long.class),
-    FLOAT(Float.class),
-    DOUBLE(Double.class),
-    BIGINTEGER(BigInteger.class),
-    BIGDECIMAL(BigDecimal.class),
-    STRING(String.class),
-    DATE(Date.class),
-    TIME(Time.class),
-    TIMESTAMP(Timestamp.class),
-    LOCALDATATIME(LocalDateTime.class);
+  public interface ResultSetValueProvider {
+
+    Object getValue(ResultSet resultSet, int index) throws SQLException;
+  }
+
+  public enum JavaType implements Serializable {
+    BOOLEAN(Boolean.class, ResultSet::getBoolean),
+    BYTE(Byte.class, ResultSet::getByte),
+    BYTES(byte[].class, ResultSet::getBytes),
+    SHORT(Short.class, ResultSet::getShort),
+    INTEGER(Integer.class, ResultSet::getInt),
+    LONG(Long.class, ResultSet::getLong),
+    FLOAT(Float.class, ResultSet::getFloat),
+    DOUBLE(Double.class, ResultSet::getDouble),
+    BIGINTEGER(BigInteger.class, ResultSet::getObject),
+    BIGDECIMAL(BigDecimal.class, ResultSet::getBigDecimal),
+    STRING(String.class, ResultSet::getString),
+    DATE(Date.class, ResultSet::getDate),
+    TIME(Time.class, ResultSet::getTime),
+    TIMESTAMP(Timestamp.class, ResultSet::getTimestamp),
+    LOCALDATATIME(LocalDateTime.class, ResultSet::getObject);
 
     private final Class<?> javaClass;
+    // get value from ressult
+    private final ResultSetValueProvider valueProvider;
 
-    JavaType(Class<?> javaClass) {
+    JavaType(Class<?> javaClass, ResultSetValueProvider valueProvider) {
       this.javaClass = javaClass;
+      this.valueProvider = valueProvider;
     }
 
     public Class<?> getJavaClass() {
       return javaClass;
+    }
+
+    public ResultSetValueProvider getValueProvider() {
+      return valueProvider;
     }
 
     public static JavaType fromClass(Class<?> javaClass) {

@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
 public class TiDBJdbcUtils {
 
@@ -22,6 +24,8 @@ public class TiDBJdbcUtils {
   public static final String SET_TS_SQL_FORMAT = "SET @@tidb_snapshot=%s";
   public static final String QUERY_SPLIT_FORMAT = "SHOW TABLE `%s`.`%s` SPLITS";
   public static final String QUERY_LIMIT_1_FORMAT = "SELECT * FROM `%s`.`%s` LIMIT 1";
+
+  private static final int PHYSICAL_SHIFT_BITS = 18;
 
   public static Connection establishNewConnection(TiDBCoreConfig config) throws SQLException {
     return DriverManager.getConnection(
@@ -71,6 +75,18 @@ public class TiDBJdbcUtils {
     }
   }
 
+  public static long getVersion(long physical, long logical) {
+    return (physical << PHYSICAL_SHIFT_BITS) + logical;
+  }
+
+  public static long getPhysicalTs(long version) {
+    return version >> PHYSICAL_SHIFT_BITS;
+  }
+
+  public static long getLogicalTs(long version) {
+    return version & 0x3FFFF;
+  }
+
   public static List<TiDBColumn> queryTiDBColumns(
       Connection connection, String database, String table) throws SQLException {
     List<TiDBColumn> types = new ArrayList<>();
@@ -85,26 +101,47 @@ public class TiDBJdbcUtils {
         String columnClassName = metaData.getColumnClassName(i);
         JavaType javaType = JavaType.fromClassName(columnClassName);
         boolean nullable = metaData.isNullable(i) == ResultSetMetaData.columnNullable;
-        types.add(new TiDBColumn(columnName, new TiDBType(javaType, precision, scale, nullable)));
+        TiDBType type = new TiDBType(javaType, precision, scale, nullable);
+        // corner case: year type
+        if (type.getJavaType() == JavaType.DATE && precision <= 4) {
+          type = new TiDBType(JavaType.SHORT, precision, scale, nullable);
+        }
+        types.add(new TiDBColumn(columnName, type));
       }
     }
     return types;
   }
 
-  public static String getQuerySql(TiDBJdbcSplit split, List<String> columns) {
+  public static String getQuerySql(
+      TiDBJdbcSplit split, List<String> columns, Integer limit, String whereCondition) {
     String columnsString =
         columns.stream().map(column -> "`" + column + "`").collect(Collectors.joining(","));
-    return String.format(
-        "SELECT %s FROM `%s`.`%s` TABLESPLIT('%s', '%s')",
-        columnsString,
-        split.getDatabaseName(),
-        split.getTableName(),
-        split.getStartKey(),
-        split.getEndKey());
+    String sql =
+        String.format(
+            "SELECT %s FROM `%s`.`%s` TABLESPLIT('%s', '%s')",
+            columnsString,
+            split.getDatabaseName(),
+            split.getTableName(),
+            split.getStartKey(),
+            split.getEndKey());
+    if (StringUtils.isNotEmpty(whereCondition)) {
+      sql += " WHERE " + whereCondition;
+    }
+    if (limit != null) {
+      sql += " LIMIT " + limit;
+    }
+    return sql;
   }
 
   public static TiDBJdbcRecordCursor scan(
-      Connection connection, List<TiDBJdbcSplit> splits, List<String> columns) throws SQLException {
+      Connection connection,
+      List<TiDBJdbcSplit> splits,
+      List<TiDBColumn> columns,
+      @Nullable Integer limit,
+      @Nullable String whereCondition)
+      throws SQLException {
+    List<String> columnNames =
+        columns.stream().map(TiDBColumn::getName).collect(Collectors.toList());
     Statement statement = connection.createStatement();
     List<Supplier<ResultSet>> resultSets =
         splits.stream()
@@ -113,7 +150,8 @@ public class TiDBJdbcUtils {
                     (Supplier<ResultSet>)
                         () -> {
                           try {
-                            String querySql = getQuerySql(split, columns);
+                            String querySql =
+                                getQuerySql(split, columnNames, limit, whereCondition);
                             statement.execute(
                                 String.format(TiDBJdbcUtils.SET_TS_SQL_FORMAT, split.getVersion()));
                             return statement.executeQuery(querySql);

@@ -172,6 +172,7 @@
     <module>bigdata-telemetry</module>
     <module>prestodb-tidb-jdbc-connector</module>
     <module>hive-tidb-jdbc-storage-handler</module>
+    <module>flink-jdbc</module>
   </modules>
 
   <build>
