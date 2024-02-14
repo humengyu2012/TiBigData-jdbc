@@ -42,6 +42,13 @@ object TiDBOptions {
 
   def jdbcOptions(from: CaseInsensitiveMap[String]): CaseInsensitiveMap[String] = populateJDBCOptions(checkNotSupportedOptions(from))
 
+  def jdbcOptions(from: CaseInsensitiveStringMap): CaseInsensitiveStringMap = {
+    val caseInsensitiveMap: CaseInsensitiveMap[String] = CaseInsensitiveMap(from.asCaseSensitiveMap().asScala.toMap)
+    new CaseInsensitiveStringMap(populateJDBCOptions(checkNotSupportedOptions(caseInsensitiveMap)).toMap.asJava)
+  }
+
+  def jdbcOptions(from: Map[String, String]): Map[String, String] = populateJDBCOptions(checkNotSupportedOptions(CaseInsensitiveMap(from)))
+
   private def checkNotSupportedOptions(parameters: CaseInsensitiveMap[String]): CaseInsensitiveMap[String] = {
     if (getOrDefault(parameters, JDBCOptions.JDBC_QUERY_STRING, "").trim.nonEmpty) {
       throw new IllegalArgumentException(
@@ -58,16 +65,6 @@ object TiDBOptions {
     parameters
   }
 
-  private def getOrDefault(parameters: CaseInsensitiveMap[String], name: String, default: String): String = {
-    if (parameters.isDefinedAt(name)) {
-      parameters(name)
-    } else if (parameters.isDefinedAt(s"$optParamPrefix$name")) {
-      parameters(s"$optParamPrefix$name")
-    } else {
-      default
-    }
-  }
-
   private def populateJDBCOptions(from: CaseInsensitiveMap[String]): CaseInsensitiveMap[String] = {
     var parameters: CaseInsensitiveMap[String] = mergeWithSparkConf(from);
     val address: String = getOrNull(parameters, TIDB_ADDRESS)
@@ -76,6 +73,8 @@ object TiDBOptions {
     val password: String = getOrNull(parameters, TIDB_PASSWORD)
     val database: String = getOrNull(parameters, TIDB_DATABASE)
     var table: String = getOrNull(parameters, TIDB_TABLE)
+
+    parameters = parameters + (JDBCOptions.JDBC_TXN_ISOLATION_LEVEL -> "REPEATABLE_READ")
 
     if (table != null) {
       if (database != null) {
@@ -121,6 +120,16 @@ object TiDBOptions {
     parameters
   }
 
+  private def getOrDefault(parameters: CaseInsensitiveMap[String], name: String, default: String): String = {
+    if (parameters.isDefinedAt(name)) {
+      parameters(name)
+    } else if (parameters.isDefinedAt(s"$optParamPrefix$name")) {
+      parameters(s"$optParamPrefix$name")
+    } else {
+      default
+    }
+  }
+
   private def mergeWithSparkConf(parameters: CaseInsensitiveMap[String]): CaseInsensitiveMap[String] = {
     val sparkConf = SparkContext.getOrCreate().getConf
     // priority: data source config > spark config
@@ -142,11 +151,6 @@ object TiDBOptions {
 
   private def getOrNull(parameters: CaseInsensitiveMap[String], name: String): String = {
     getOrDefault(parameters, name, null)
-  }
-
-  def jdbcOptions(from: CaseInsensitiveStringMap): CaseInsensitiveStringMap = {
-    var caseInsensitiveMap: CaseInsensitiveMap[String] = CaseInsensitiveMap(from.asCaseSensitiveMap().asScala.toMap)
-    new CaseInsensitiveStringMap(populateJDBCOptions(checkNotSupportedOptions(caseInsensitiveMap)).toMap.asJava)
   }
 
   private def newOption(name: String): String = {

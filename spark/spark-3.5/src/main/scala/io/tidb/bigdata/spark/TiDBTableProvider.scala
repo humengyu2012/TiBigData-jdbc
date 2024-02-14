@@ -19,18 +19,21 @@ package io.tidb.bigdata.spark
 import org.apache.spark.sql.catalyst.util.CaseInsensitiveMap
 import org.apache.spark.sql.connector.catalog.{Identifier, Table, TableProvider}
 import org.apache.spark.sql.connector.expressions.Transform
-import org.apache.spark.sql.execution.datasources.jdbc.{JDBCRDD, JdbcUtils}
+import org.apache.spark.sql.execution.datasources.jdbc.{JDBCRDD, JdbcRelationProvider, JdbcUtils}
 import org.apache.spark.sql.execution.datasources.v2.jdbc.JDBCTable
-import org.apache.spark.sql.sources.DataSourceRegister
+import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, DataSourceRegister, RelationProvider}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.util.CaseInsensitiveStringMap
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 
 import java.util
 import scala.collection.JavaConverters._
 
 class TiDBTableProvider
   extends TableProvider
-    with DataSourceRegister {
+    with DataSourceRegister
+    with CreatableRelationProvider
+    with RelationProvider {
   override def inferSchema(options: CaseInsensitiveStringMap): StructType = {
     getTable(null, Array.empty[Transform], options.asCaseSensitiveMap()).schema()
   }
@@ -56,4 +59,12 @@ class TiDBTableProvider
   }
 
   override def shortName(): String = "tidb"
+
+  override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
+    new JdbcRelationProvider().createRelation(sqlContext, mode, TiDBOptions.jdbcOptions(parameters), data)
+  }
+
+  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
+    new JdbcRelationProvider().createRelation(sqlContext, TiDBOptions.jdbcOptions(parameters))
+  }
 }
