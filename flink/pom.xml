@@ -12,7 +12,7 @@
   <artifactId>flink-tidb-connector</artifactId>
   <packaging>pom</packaging>
   <name>Flink Connector</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <dep.scala.binary.version>2.11</dep.scala.binary.version>

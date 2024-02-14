@@ -12,7 +12,7 @@
   <artifactId>prestosql-connector</artifactId>
   <packaging>jar</packaging>
   <name>PrestoSQL Connector</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <dep.airlift.version>202</dep.airlift.version>

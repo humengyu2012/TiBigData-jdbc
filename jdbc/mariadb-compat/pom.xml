@@ -13,7 +13,7 @@
   <artifactId>tidb-jdbc-mariadb-compat</artifactId>
   <packaging>jar</packaging>
   <name>TiDB JDBC MariaDB compatibility package</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

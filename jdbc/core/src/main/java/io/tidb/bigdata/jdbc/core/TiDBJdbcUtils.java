@@ -150,11 +150,9 @@ public class TiDBJdbcUtils {
                     (Supplier<ResultSet>)
                         () -> {
                           try {
-                            String querySql =
-                                getQuerySql(split, columnNames, limit, whereCondition);
-                            statement.execute(
-                                String.format(TiDBJdbcUtils.SET_TS_SQL_FORMAT, split.getVersion()));
-                            return statement.executeQuery(querySql);
+                            setSnapshot(statement, split.getVersion());
+                            return statement.executeQuery(
+                                getQuerySql(split, columnNames, limit, whereCondition));
                           } catch (SQLException e) {
                             throw new IllegalStateException("Can not get resultSet", e);
                           }
@@ -162,5 +160,15 @@ public class TiDBJdbcUtils {
             .collect(Collectors.toList());
 
     return new TiDBJdbcRecordCursor(statement, resultSets, columns);
+  }
+
+  public static void setSnapshot(Statement statement, long version) throws SQLException {
+    statement.execute(String.format(TiDBJdbcUtils.SET_TS_SQL_FORMAT, Long.toString(version)));
+  }
+
+  public static void setSnapshot(Connection connection, long version) throws SQLException {
+    try (Statement statement = connection.createStatement()) {
+      setSnapshot(statement, version);
+    }
   }
 }

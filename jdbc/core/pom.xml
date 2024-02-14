@@ -12,7 +12,7 @@
   <artifactId>tidb-jdbc-core</artifactId>
   <packaging>jar</packaging>
   <name>TiDB JDBC Core</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
