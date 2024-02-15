@@ -34,6 +34,9 @@ class TiDBTableProvider
     with DataSourceRegister
     with CreatableRelationProvider
     with RelationProvider {
+
+  private val relationProvider = new JdbcRelationProvider()
+
   override def inferSchema(options: CaseInsensitiveStringMap): StructType = {
     getTable(null, Array.empty[Transform], options.asCaseSensitiveMap()).schema()
   }
@@ -61,10 +64,10 @@ class TiDBTableProvider
   override def shortName(): String = "tidb"
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    new JdbcRelationProvider().createRelation(sqlContext, mode, TiDBOptions.jdbcOptions(parameters), data)
+    relationProvider.createRelation(sqlContext, mode, TiDBOptions.jdbcOptions(parameters), data)
   }
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
-    new JdbcRelationProvider().createRelation(sqlContext, TiDBOptions.jdbcOptions(parameters))
+    relationProvider.createRelation(sqlContext, TiDBOptions.jdbcOptions(parameters))
   }
 }
