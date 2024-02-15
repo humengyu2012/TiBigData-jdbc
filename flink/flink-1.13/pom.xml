@@ -12,7 +12,7 @@
   <artifactId>flink-tidb-connector-1.13</artifactId>
   <packaging>jar</packaging>
   <name>Flink Connector 1.13</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <dep.flink.version>1.13.0</dep.flink.version>

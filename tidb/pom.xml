@@ -12,7 +12,7 @@
   <artifactId>bigdata-core</artifactId>
   <packaging>jar</packaging>
   <name>TiBigData Project Core</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <dep.tikv-client.version>3.3.2</dep.tikv-client.version>
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>io.tidb</groupId>
       <artifactId>tidb-jdbc-driver</artifactId>
-      <version>${parent.version}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tikv</groupId>

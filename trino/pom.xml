@@ -12,7 +12,7 @@
   <artifactId>trino-connector</artifactId>
   <packaging>jar</packaging>
   <name>Trino Connector</name>
-  <url>https://github.com/pingcap-incubator/TiBigData</url>
+  <url>https://github.com/tidb-incubator/TiBigData</url>
 
   <properties>
     <dep.trino.version>359</dep.trino.version>
